@@ -11,6 +11,7 @@ import argparse
 from pathlib import Path
 import os
 import cv2
+import re
 import shutil
 try:
     from PIL import Image
@@ -46,13 +47,17 @@ def main(args):
                 #(Rect(0, 0, frame.cols/2, frame.rows/3));
                 verse = pytesseract.image_to_string(Image.open(cropped_frame))
                  #TODO FY
-                if VERSE_EQUALS_TO_THE_STANDARD_FORMAT: #TODO FY                                  
-                    # continue creating images until video remains                   
-                    verse = verse.replace(k)
+                rePattern = re.compile("^([0-9a-zA-Z][^0-9]+)([0-9]{1,}(\:[0-9]{1,})?)$")
+                matchesPattern = bool(re.search(rePattern, verse)) 
+                if matchesPattern: #TODO FY                                  
+                    # continue creating images until video remains  
+                    refinedPattern = re.compile(":|\s")                 
+                    refinedVerse = re.sub(refinedPattern, '_', verse)
+                    verse_path = f"/content/SP-10/dataset/gse/{refinedVerse}"
                     # creates folder with verse name if it doesn't yet exists. 
                     try:
                         # creates folder with verse name if it doesn't yet exists. 
-                        verse_path = # TODO FY
+                        verse_path = Path(verse_path)  # TODO FY
                         if not os.path.exists(verse_path):
                             os.makedirs(verse_path)
                             currentframe = 1
@@ -60,11 +65,12 @@ def main(args):
                     except OSError:
                         print('Error: Creating directory of data')     
                                                             
-                    name = './f"{verse}"/images' + str("{:04d}".format(currentframe)) + '.png' #TODO SHESTER : NOT VERY SURE OF THE f"{verse}
+                    name = 'images' + str("{:04d}".format(currentframe)) + '.png' #TODO SHESTER : NOT VERY SURE OF THE f"{verse}
                     print('Creating...' + name)
+                    image_path = f"{verse_path}/{name}"
 
                     # writing the extracted images
-                    cv2.imwrite(name, frame)
+                    cv2.imwrite(image_path, frame)
 
                     # increasing counter so that it will
                     # show how many frames are created

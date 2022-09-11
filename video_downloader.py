@@ -13,24 +13,27 @@ def main(args):
     #parts = ["train","dev", "test"]
     #for part in parts:
     lan = "gse"
-    logging.info(f"Downloading {gse} set")
+    logging.info(f"Downloading {lan} set")
     with open(f"dataset/{lan}.json", "r") as f:
         data = json.load(f)
+    i=1
     for obj in data:
-        video_name = obj["video_name"]
+        #video_name = obj["video_name"]
         #sign_list = obj["sign_list"]
         #for sign_obj in sign_list:
-        video_url = obj["video_url"]
+        video_url = obj["videoUrl"]
         if video_url is None:
             continue
-        file_path = Path(args.save_path) / lan / f"{video_name}.mp4"
+        
+        file_path = Path(args.save_path + f"/{lan}/video{i}.mp4")
         if file_path.exists():
             logging.info(f"{file_path} already exists")
             continue
         file_path.parent.mkdir(parents=True, exist_ok=True)
         logging.info(f"Downloading {file_path}")
         logging.info(f"Requesting {video_url}")
-        urllib.request.urlretrieve(video_url, file_path) 
+        urllib.request.urlretrieve(video_url, file_path)
+        i = i+1 
     logging.info(f"Downloading {lan} set finished")
 
 

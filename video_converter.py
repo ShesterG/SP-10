@@ -1,8 +1,8 @@
 #frames from videos; https://github.com/Ai-Genome-Saksham/OpenCV/blob/main/OpenCV/%239%20Extracting%20Images%20from%20Video.py
 #text from images;   https://github.com/bhadreshpsavani/ExploringOCR/blob/master/OCRusingTesseract.ipynb
 
-!sudo apt install tesseract-ocr # TODO : INSERT INSIDE REQUIREMENTS ?
-!pip install pytesseract        # TODO : INSERT INSIDE REQUIREMENTS ?
+#!sudo apt install tesseract-ocr # TODO : INSERT INSIDE REQUIREMENTS ?
+#!pip install pytesseract        # TODO : INSERT INSIDE REQUIREMENTS ?
 
 import pytesseract
 import random
@@ -41,24 +41,25 @@ def main(args):
             success, frame = framed_vid.read()
 
             if success:
-                cropped_frame = frame(Rect(0, 0, frame.cols/2, frame.rows/3));
+                h, w, channels = frame.shape
+                cropped_frame = frame[h//3:w//2]
+                #(Rect(0, 0, frame.cols/2, frame.rows/3));
                 verse = pytesseract.image_to_string(Image.open(cropped_frame))
-                verse = PREPROCESS VERSE TO A STANDARD FORMAT #TODO SHESTER
-                if VERSE_EQUALS_TO_THE_STANDARD_FORMAT: #TODO SHESTER                                  
+                 #TODO FY
+                if VERSE_EQUALS_TO_THE_STANDARD_FORMAT: #TODO FY                                  
                     # continue creating images until video remains                   
-                    
+                    verse = verse.replace(k)
                     # creates folder with verse name if it doesn't yet exists. 
                     try:
                         # creates folder with verse name if it doesn't yet exists. 
-                        if not os.path.exists(verse):
-                            os.makedirs(verse)
+                        verse_path = # TODO FY
+                        if not os.path.exists(verse_path):
+                            os.makedirs(verse_path)
+                            currentframe = 1
                     # if not created then raise error
                     except OSError:
                         print('Error: Creating directory of data')     
-                    
-                    if not os.path.exists(verse):
-                        os.makedirs(verse)
-                    
+                                                            
                     name = './f"{verse}"/images' + str("{:04d}".format(currentframe)) + '.png' #TODO SHESTER : NOT VERY SURE OF THE f"{verse}
                     print('Creating...' + name)
 

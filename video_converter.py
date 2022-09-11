@@ -1,3 +1,21 @@
+
+#TO BE ADDED Shester ; ocr start
+!sudo apt install tesseract-ocr
+!pip install pytesseract
+
+import pytesseract
+import shutil
+import os
+import random
+try:
+    from PIL import Image
+except ImportError:
+    import Image
+
+extractedInformation = pytesseract.image_to_string(Image.open('2.jpg'))
+
+#TO BE ADDED Shester ; ocr end
+
 import logging
 import argparse
 from pathlib import Path
@@ -7,7 +25,7 @@ import shutil
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
-
+#changes the frame rate of all the videos to 25
 def main(args):
     root_path = Path(args.save_path)
     for video_path in root_path.rglob("*.mp4"):
@@ -27,6 +45,6 @@ if __name__ == "__main__":
         "--save_path", help="Path to save the video", default="./videos", type=str
     )
     args = parse.parse_args()
-    logging.info("Start converting SP-10 dataset")
+    logging.info("Start converting dataset")
     main(args)
-    logging.info("Converting SP-10 dataset finished")
+    logging.info("Converting dataset finished")

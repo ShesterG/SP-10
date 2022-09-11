@@ -6,18 +6,16 @@
 
 import pytesseract
 import random
-try:
-    from PIL import Image
-except ImportError:
-    import Image
-
-
 import logging
 import argparse
 from pathlib import Path
 import os
 import cv2
 import shutil
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 

@@ -13,16 +13,14 @@ import os
 import cv2
 import re
 import shutil
-try:
-    from PIL import Image
-except ImportError:
-    import Image
+from PIL import Image
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 #changes the frame rate of all the videos to 25
 def main(args):
     root_path = Path(args.save_path)
+    vidnum = 1
     for video_path in root_path.rglob("*.mp4"):
         vid = cv2.VideoCapture(str(video_path))
         frame_rate = int(vid.get(cv2.CAP_PROP_FPS))
@@ -34,7 +32,7 @@ def main(args):
         framed_vid = cv2.VideoCapture("/tmp/sign.mp4")
         
         # frame
-        currentframe = 1
+        #currentframe = 1
         
         while (True):
 
@@ -42,18 +40,29 @@ def main(args):
             success, frame = framed_vid.read()
 
             if success:
-                h, w, channels = frame.shape
-                cropped_frame = frame[h//3:w//2]
+                #frameT = Image.fromarray(frame)
+                #w,h = frameT.size
+                #cropped_frame = frame[h//3:w//2]
+                #cropped_frame = frameT.crop((0, 0, w//2, h//2))
+
+
+                #temp_name = 'temp_image' + '.png' #TODO SHESTER : NOT VERY SURE OF THE f"{verse}
+                #print('Creating...' + name)
+                #temp_im_path = f"/tmp/{temp_name}"                
+                #cv2.imwrite(temp_im_path, frame)
+
                 #(Rect(0, 0, frame.cols/2, frame.rows/3));
-                verse = pytesseract.image_to_string(Image.open(cropped_frame))
-                 #TODO FY
-                rePattern = re.compile("^([0-9a-zA-Z][^0-9]+)([0-9]{1,}(\:[0-9]{1,})?)$")
-                matchesPattern = bool(re.search(rePattern, verse)) 
-                if matchesPattern: #TODO FY                                  
+                #verse = pytesseract.image_to_string(temp_im_path).strip()
+                #print(verse)
+                #os.remove(temp_im_path)
+                #TODO FY
+                #rePattern = re.compile("^([0-9a-zA-Z][^0-9]+)([0-9]{1,}(\:[0-9]{1,})?)$")
+                #matchesPattern = bool(re.search(rePattern, verse)) 
+                if True: #TODO FY                                  
                     # continue creating images until video remains  
-                    refinedPattern = re.compile(":|\s")                 
-                    refinedVerse = re.sub(refinedPattern, '_', verse)
-                    verse_path = f"/content/SP-10/dataset/gse/{refinedVerse}"
+                    #refinedPattern = re.compile(":|\s")                 
+                    #refinedVerse = re.sub(refinedPattern, '_', verse) 
+                    verse_path = f"/content/SP-10/dataset/gse/{vidnum}"
                     # creates folder with verse name if it doesn't yet exists. 
                     try:
                         # creates folder with verse name if it doesn't yet exists. 
@@ -79,6 +88,7 @@ def main(args):
             else:
                 break
         # Release all space and windows once done
+        vidnum +=1
         vid.release()
         cv2.destroyAllWindows()        
         

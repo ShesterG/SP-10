@@ -13,15 +13,23 @@ import os
 import cv2
 import re
 import shutil
+import glob
 from PIL import Image
+from PIL import ImageChops
+from PIL import ImageEnhance
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 #changes the frame rate of all the videos to 25
 def main(args):
     root_path = Path(args.save_path)
-    vidnum = 1
-    for video_path in root_path.rglob("*.mp4"):
+    #vidnum = 1    
+    types = ('*.mp4', '*.m4v') # the tuple of file types
+    files_grabbed = []
+    for files in types:
+        files_grabbed.extend(root_path.glob(files))
+    for video_path in files_grabbed:
         vid = cv2.VideoCapture(str(video_path))
         frame_rate = int(vid.get(cv2.CAP_PROP_FPS))
         #if frame_rate == 25:
@@ -40,10 +48,32 @@ def main(args):
             success, frame = framed_vid.read()
 
             if success:
-                #frameT = Image.fromarray(frame)
+                frame = cv2.resize(frame,(640, 480))
+                frameT = Image.fromarray(frame)
                 #w,h = frameT.size
                 #cropped_frame = frame[h//3:w//2]
-                #cropped_frame = frameT.crop((0, 0, w//2, h//2))
+                rePattern = re.compile("^([0-9a-zA-Z][^0-9]+)([0-9]{1,}(\:[0-9]{1,})?)$")
+                #cropped_frame = frameT.crop((10, 10, 110, 40))
+                #verse = pytesseract.image_to_string(frameT.crop((10, 10, 110, 40))).strip()
+                #print(verse)
+                if bool(re.search(rePattern, pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((65, 25, 215, 75)))).enhance(2)).strip())):
+                    verse = pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((65, 25, 215, 75)))).enhance(2))
+                    print(verse)
+                    matchesPattern = True
+                elif bool(re.search(rePattern, pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((10, 10, 100, 40)))).enhance(1.5)).strip())):
+                    verse = pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((10, 10, 100, 40)))).enhance(1.5))
+                    print(verse)
+                    matchesPattern = True
+                elif bool(re.search(rePattern, pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((10, 10, 90, 40)))).enhance(1.5)).strip())):
+                    verse = pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((10, 10, 90, 40)))).enhance(1.5))
+                    print(verse)
+                    matchesPattern = True
+                else:
+                    matchesPattern = False         
+                           
+
+
+
 
 
                 #temp_name = 'temp_image' + '.png' #TODO SHESTER : NOT VERY SURE OF THE f"{verse}
@@ -58,11 +88,11 @@ def main(args):
                 #TODO FY
                 #rePattern = re.compile("^([0-9a-zA-Z][^0-9]+)([0-9]{1,}(\:[0-9]{1,})?)$")
                 #matchesPattern = bool(re.search(rePattern, verse)) 
-                if True: #TODO FY                                  
+                if matchesPattern: #TODO FY                                  
                     # continue creating images until video remains  
-                    #refinedPattern = re.compile(":|\s")                 
-                    #refinedVerse = re.sub(refinedPattern, '_', verse) 
-                    verse_path = f"/content/SP-10/dataset/gse/{vidnum}"
+                    refinedPattern = re.compile(":|\s")                 
+                    refinedVerse = re.sub(refinedPattern, '_', verse) 
+                    verse_path = f"/content/SP-10/dataset/gse/{refinedVerse}"
                     # creates folder with verse name if it doesn't yet exists. 
                     try:
                         # creates folder with verse name if it doesn't yet exists. 
@@ -88,7 +118,7 @@ def main(args):
             else:
                 break
         # Release all space and windows once done
-        vidnum +=1
+        #vidnum +=1
         vid.release()
         cv2.destroyAllWindows()        
         

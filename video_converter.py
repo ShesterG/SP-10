@@ -56,10 +56,12 @@ def main(args):
                 #cropped_frame = frameT.crop((10, 10, 110, 40))
                 #verse = pytesseract.image_to_string(frameT.crop((10, 10, 110, 40))).strip()
                 #print(verse)
-                if bool(re.search(rePattern, pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((65, 25, 215, 75)))).enhance(2)).strip())):
-                    verse = pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((65, 25, 215, 75)))).enhance(2))
-                    print(verse)
-                    matchesPattern = True
+                #matchesPattern = False 
+                verse = pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((50, 25, 215, 75)))).enhance(2))
+                #if bool(re.search(rePattern, verse)):                    
+                #    print(verse)
+                #    matchesPattern = True
+                """
                 elif bool(re.search(rePattern, pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((10, 10, 100, 40)))).enhance(1.5)).strip())):
                     verse = pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((10, 10, 100, 40)))).enhance(1.5))
                     print(verse)
@@ -67,9 +69,10 @@ def main(args):
                 elif bool(re.search(rePattern, pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((10, 10, 90, 40)))).enhance(1.5)).strip())):
                     verse = pytesseract.image_to_string(ImageEnhance.Contrast(ImageChops.invert(frameT.crop((10, 10, 90, 40)))).enhance(1.5))
                     print(verse)
-                    matchesPattern = True
+                    matchesPattern = True                    
                 else:
-                    matchesPattern = False         
+                    matchesPattern = False   
+                """          
                            
 
 
@@ -88,7 +91,7 @@ def main(args):
                 #TODO FY
                 #rePattern = re.compile("^([0-9a-zA-Z][^0-9]+)([0-9]{1,}(\:[0-9]{1,})?)$")
                 #matchesPattern = bool(re.search(rePattern, verse)) 
-                if matchesPattern: #TODO FY                                  
+                if bool(re.search(rePattern, verse)): #TODO FY                                  
                     # continue creating images until video remains  
                     refinedPattern = re.compile(":|\s")                 
                     refinedVerse = re.sub(refinedPattern, '_', verse) 
@@ -109,7 +112,7 @@ def main(args):
                     image_path = f"{verse_path}/{name}"
 
                     # writing the extracted images
-                    cv2.imwrite(image_path, frame)
+                    cv2.imwrite(image_path,cv2.resize(frame,(320, 240)))
 
                     # increasing counter so that it will
                     # show how many frames are created

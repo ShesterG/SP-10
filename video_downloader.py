@@ -14,7 +14,7 @@ def main(args):
     #for part in parts:
     lan = "gse"
     logging.info(f"Downloading {lan} set")
-    with open(f"dataset/{lan}.json", "r") as f:
+    with open(f"dataset/{lan}240.json", "r") as f:
         data = json.load(f)
     i=1
     for obj in data:
@@ -22,10 +22,11 @@ def main(args):
         #sign_list = obj["sign_list"]
         #for sign_obj in sign_list:
         video_url = obj["videoUrl"]
+        video_name = video_url.split('/')[-1].split('.')[0]
         if video_url is None:
             continue
         
-        file_path = Path(args.save_path + f"/{lan}/video{i}.mp4")
+        file_path = Path(args.save_path + f"/{lan}/{video_name}.mp4")
         if file_path.exists():
             logging.info(f"{file_path} already exists")
             continue

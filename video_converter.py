@@ -23,15 +23,15 @@ import pickle
 import gzip
 from keras.preprocessing import image
 from keras.layers import merge, Input
-#from PIL import Image
-#from PIL import ImageChops
-#from PIL import ImageEnhance
+from PIL import Image
+from PIL import ImageChops
+from PIL import ImageEnhance
 import tensorflow as tf
 import torch
 import json
 from PIL import Image
-from torchvision import transforms
-from efficientnet_pytorch import EfficientNet
+#from torchvision import transforms
+#from efficientnet_pytorch import EfficientNet
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
@@ -44,10 +44,11 @@ def main(args):
     files_grabbed = []
     for files in types:
         files_grabbed.extend(root_path.glob(files))
-    Emodel = EfficientNet.from_pretrained('efficientnet-b0')
+    #Emodel = EfficientNet.from_pretrained('efficientnet-b0')
     verses_list=[]
-    video_i = 1    
-    for videopath in files_grabbed:
+    video_i = 1
+    step = 1/25    
+    for videopath in files_grabbed[50:52]:
         #vid = cv2.VideoCapture(str(video_path))
         refB = str(videopath).split('/')[-1].split('.')[0]
         os.system(f"ffprobe -i {videopath} -print_format default -show_chapters -loglevel error > {root_path}/{refB}.json 2>&1")
@@ -80,15 +81,15 @@ def main(args):
             verse_dict["duration"] = float(float(row["end_time"]) - float(row["start_time"]))
             verse_dict["text"] = "Verse Text"
             #video = cv2.VideoCapture(str(videopath))
-            ##currentframe = 1
-            step = 1/25
+            currentframe = 1
+            #step = 1/25
             enet_feature_list=[]
             for current_second in np.arange(math.ceil(float(row["start_time"])), math.floor(float(row["end_time"])), step):
               t_msec = 1000*(current_second)
               video.set(cv2.CAP_PROP_POS_MSEC, t_msec)
               success, frame = video.read()
               if success:
-                """
+                #image_save_start
                 verse_path = f'{root_path}/{row["title"]}'
                 # creates folder with verse name if it doesn't yet exists. 
                 try:
@@ -104,8 +105,14 @@ def main(args):
                 #print('Creating...' + name)
                 image_path = f"{verse_path}/{name}"
                 # writing the extracted images
-                """ 
+                cv2.imwrite(image_path,cv2.resize(frame,(320, 240)))
+                currentframe += 1
+                #image_save_end
+                
 
+
+                """
+                #tensor_save_start
                 frame = cv2.resize(frame,(320, 240))
                 frame = Image.fromarray(frame)
 
@@ -118,11 +125,8 @@ def main(args):
                   enet_feature = Emodel.extract_features(img)
                   enet_feature = torch.flatten(enet_feature)
                   enet_feature_list.append(enet_feature)                
-                              
-                  #cv2.imwrite(image_path,cv2.resize(frame,(320, 240)))
-                  # increasing counter so that it will
-                  # show how many frames are created
-                  ##currentframe += 1
+
+                  
             with torch.no_grad():
               try:
                 verse_torch = torch.stack(enet_feature_list,0)
@@ -133,14 +137,16 @@ def main(args):
 
                 verses_list.append(verse_dict)
               except RuntimeError:
-                print(f"ERROR: Video {video_i} - {refB}.") 
+                print(f"ERROR: Video {video_i} - {refB}.")
+            #tensor_save_end
+            """     
         print(f"Video {video_i} done.")
         video_i += 1
         video.release()
         cv2.destroyAllWindows() 
-    file = gzip.GzipFile("/content/SP-10/dataset/GSL240.dataset", 'wb')
-    file.write(pickle.dumps(verses_list,0))
-    file.close()
+    #vfile = gzip.GzipFile("/content/SP-10/dataset/GSL240.dataset", 'wb')
+    #vfile.write(pickle.dumps(verses_list,0))
+    #vfile.close()
 if __name__ == "__main__":
     parse = argparse.ArgumentParser()
     parse.add_argument(

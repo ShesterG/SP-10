@@ -13,8 +13,22 @@ def main(args):
     #parts = ["train","dev", "test"]
     #for part in parts:
     lan = "gse"
+    
+    #!cd /content/SP-10/dataset/gse
+    r_path = Path(args.save_path)
+    #Path("/content/SP-10/dataset/gse")
+
+    combined = []
+    for json_file in r_path.glob("*.json"): #Assuming that your files are json files
+        with open(json_file, "rb") as infile:
+            combined.append(json.load(infile))
+    combined_list = list(itertools.chain.from_iterable(combined))
+    with open(f"{r_path}/{lan}240.json", "w") as f:
+        json.dump(combined_list, f)
+    
+    
     logging.info(f"Downloading {lan} set")
-    with open(f"dataset/{lan}240.json", "r") as f:
+    with open(f"{r_path}/{lan}240.json", "r") as f:
         data = json.load(f)
     i=1
     for obj in data:
@@ -26,7 +40,7 @@ def main(args):
         if video_url is None:
             continue
         
-        file_path = Path(args.save_path + f"/{lan}/{video_name}.mp4")
+        file_path = Path(args.save_path + f"/{lan}_videos/{video_name}.mp4")
         if file_path.exists():
             logging.info(f"{file_path} already exists")
             continue

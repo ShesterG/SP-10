@@ -22,7 +22,7 @@ import sys
 import pickle
 import gzip
 from keras.preprocessing import image
-from keras.layers import merge, Input
+#from keras.layers import merge, Input
 from PIL import Image
 from PIL import ImageChops
 from PIL import ImageEnhance
@@ -35,25 +35,31 @@ from PIL import Image
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
-
 #changes the frame rate of all the videos to 25
 def main(args):
+
+    lan = "ase"  
     root_path = Path(args.save_path)
+    verses_num = 0
+
+    videos_path = Path(args.save_path + f"/{lan}_videos")
     #vidnum = 1    
     types = ('*.mp4','*.m4v') # the tuple of file types
     files_grabbed = []
+
     for files in types:
-        files_grabbed.extend(root_path.glob(files))
+        files_grabbed.extend(videos_path.glob(files))
     #Emodel = EfficientNet.from_pretrained('efficientnet-b0')
     verses_list=[]
     video_i = 1
+    
     step = 1/25    
-    for videopath in files_grabbed[50:52]:
+    for videopath in files_grabbed[:3]:
         #vid = cv2.VideoCapture(str(video_path))
         refB = str(videopath).split('/')[-1].split('.')[0]
-        os.system(f"ffprobe -i {videopath} -print_format default -show_chapters -loglevel error > {root_path}/{refB}.json 2>&1")
+        os.system(f"ffprobe -i {videopath} -print_format default -show_chapters -loglevel error > {videos_path}/{refB}.json 2>&1")
         
-        with open(f"{root_path}/{refB}.json", "r") as infile:
+        with open(f"{videos_path}/{refB}.json", "r") as infile:
             data = infile.read()
         data = data.replace("\n", "|")
         data = data.replace("|[/CHAPTER]|", "\n")
@@ -75,22 +81,24 @@ def main(args):
         for index, row in df.iterrows():           
             #print(row["Name"], row["Age"])
             #opencv_method
+            """
             verse_dict["video_name"] = refB
             verse_dict["name"] = row["title"]
             verse_dict["signer"] = "Signer8"            
             verse_dict["duration"] = float(float(row["end_time"]) - float(row["start_time"]))
             verse_dict["text"] = "Verse Text"
+            """
             #video = cv2.VideoCapture(str(videopath))
             currentframe = 1
             #step = 1/25
-            enet_feature_list=[]
+            #enet_feature_list=[]
             for current_second in np.arange(math.ceil(float(row["start_time"])), math.floor(float(row["end_time"])), step):
               t_msec = 1000*(current_second)
               video.set(cv2.CAP_PROP_POS_MSEC, t_msec)
               success, frame = video.read()
               if success:
                 #image_save_start
-                verse_path = f'{root_path}/{row["title"]}'
+                verse_path = f'{root_path}/{lan}_verses/{row["title"]}'
                 # creates folder with verse name if it doesn't yet exists. 
                 try:
                     # creates folder with verse name if it doesn't yet exists. 
@@ -108,42 +116,13 @@ def main(args):
                 cv2.imwrite(image_path,cv2.resize(frame,(320, 240)))
                 currentframe += 1
                 #image_save_end
-                
-
-
-                """
-                #tensor_save_start
-                frame = cv2.resize(frame,(320, 240))
-                frame = Image.fromarray(frame)
-
-                with torch.no_grad():
-                  tfms = transforms.Compose([transforms.ToTensor(),
-                  transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),])
-                  #img = image.load_img(frame, target_size=(320, 240))
-                  img = tfms(frame).unsqueeze(0)
-                  #print(img.shape) # torch.Size([1, 3, 224, 224])
-                  enet_feature = Emodel.extract_features(img)
-                  enet_feature = torch.flatten(enet_feature)
-                  enet_feature_list.append(enet_feature)                
-
-                  
-            with torch.no_grad():
-              try:
-                verse_torch = torch.stack(enet_feature_list,0)
-                dense_model = torch.nn.Linear(in_features=enet_feature_list[0].numel(), out_features=1024, bias=True)
-                dense_verse_torch = dense_model(verse_torch)
-                verse_dict["sign"] = dense_verse_torch
-                
-
-                verses_list.append(verse_dict)
-              except RuntimeError:
-                print(f"ERROR: Video {video_i} - {refB}.")
-            #tensor_save_end
-            """     
-        print(f"Video {video_i} done.")
+            verses_num += 1
+    
+        print(f"Video {video_i} - {refB} done.")
         video_i += 1
         video.release()
         cv2.destroyAllWindows() 
+    print(f"COMPLETED. Total of {verses_num} verses folders generated. ")
     #vfile = gzip.GzipFile("/content/SP-10/dataset/GSL240.dataset", 'wb')
     #vfile.write(pickle.dumps(verses_list,0))
     #vfile.close()

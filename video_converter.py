@@ -40,21 +40,30 @@ def main(args):
 
     lan = "ase"  
     root_path = Path(args.save_path)
-    verses_num = 0
-
     videos_path = Path(args.save_path + f"/{lan}_videos")
-    #vidnum = 1    
-    types = ('*.mp4','*.m4v') # the tuple of file types
-    files_grabbed = []
+    verses_num = 0
+    
+    if Path(f"{root_path}/{lan}_videospath.txt").exists():
+        print(f"{lan}_videospath.txt exists.")
+        files_grabbed = []
+        with open(f"{root_path}/{lan}_videospath.txt", 'r') as filehandle:
+            for line in filehandle:
+                # Remove linebreak which is the last character of the string
+                curr_place = line[:-1]
+                # Add item to the list
+                files_grabbed.append(curr_place)
+    else:
+        files_grabbed = sorted(videos_path.glob('*.mp4'), key=os.path.getmtime)
+        with open(f"{root_path}/{lan}_videospath.txt", 'w') as filehandle:
+            for listitem in files_grabbed:
+                filehandle.write(f'{listitem}\n')
 
-    for files in types:
-        files_grabbed.extend(videos_path.glob(files))
     #Emodel = EfficientNet.from_pretrained('efficientnet-b0')
     verses_list=[]
     video_i = 1
     
     step = 1/25    
-    for videopath in files_grabbed[:3]:
+    for videopath in files_grabbed[video_i-1:video_i+100]:
         #vid = cv2.VideoCapture(str(video_path))
         refB = str(videopath).split('/')[-1].split('.')[0]
         os.system(f"ffprobe -i {videopath} -print_format default -show_chapters -loglevel error > {videos_path}/{refB}.json 2>&1")

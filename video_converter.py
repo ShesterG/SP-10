@@ -43,6 +43,7 @@ def main(args):
     videos_path = Path(args.save_path + f"/{lan}_videos")
     verses_num = 0
     
+    
     if Path(f"{root_path}/{lan}_videospath.txt").exists():
         print(f"{lan}_videospath.txt exists.")
         files_grabbed = []
@@ -60,10 +61,12 @@ def main(args):
 
     #Emodel = EfficientNet.from_pretrained('efficientnet-b0')
     verses_list=[]
-    video_i = 1
+    video_i = 0
+    folder_name = "000_100"
     
     step = 1/25    
-    for videopath in files_grabbed[video_i-1:video_i+100]:
+    for videopath in files_grabbed[video_i:video_i+101]:
+        videopath = Path(videopath)
         #vid = cv2.VideoCapture(str(video_path))
         refB = str(videopath).split('/')[-1].split('.')[0]
         os.system(f"ffprobe -i {videopath} -print_format default -show_chapters -loglevel error > {videos_path}/{refB}.json 2>&1")
@@ -80,6 +83,7 @@ def main(args):
             df['LastDigit'] = [x.strip()[-1] for x in df['title']]
         except AttributeError:
             print(f"SKIPPED SKIPPED SKIPPED SKIPPED SKIPPED Video {video_i} - {refB} done.")
+            video_i += 1
             continue
         df = df[df['LastDigit'].str.isdigit()]
         df.drop(['LastDigit'], axis=1, inplace=True)
@@ -111,7 +115,7 @@ def main(args):
               success, frame = video.read()
               if success:
                 #image_save_start
-                verse_path = f'{root_path}/{lan}_verses/{row["title"]}'
+                verse_path = f'{root_path}/{lan}_verses/{lan}_{folder_name}/{row["title"]}'
                 # creates folder with verse name if it doesn't yet exists. 
                 try:
                     # creates folder with verse name if it doesn't yet exists. 

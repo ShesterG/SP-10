@@ -115,7 +115,8 @@ def main(args):
               success, frame = video.read()
               if success:
                 #image_save_start
-                verse_path = f'{root_path}/{lan}_verses/{lan}_{folder_name}/{row["title"]}'
+                verse_path = f'/content/{lan}_{folder_name}/{row["title"]}'
+                
                 # creates folder with verse name if it doesn't yet exists. 
                 try:
                     # creates folder with verse name if it doesn't yet exists. 

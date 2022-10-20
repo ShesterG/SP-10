@@ -67,7 +67,11 @@ def main(args):
         dataIO = io.StringIO(data)
         df = pd.read_csv(dataIO, sep="|", names=colnames, header=None)
         df.drop(['CHAPTER', 'id', 'time_base', 'start', 'end'], axis=1, inplace=True)
-        df['LastDigit'] = [x.strip()[-1] for x in df['title']]
+        try:
+            df['LastDigit'] = [x.strip()[-1] for x in df['title']]
+        except AttributeError:
+            print(f"SKIPPED SKIPPED SKIPPED SKIPPED SKIPPED Video {video_i} - {refB} done.")
+            continue
         df = df[df['LastDigit'].str.isdigit()]
         df.drop(['LastDigit'], axis=1, inplace=True)
         df["start_time"] = df["start_time"].str.replace("start_time=", "")

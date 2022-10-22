@@ -35,7 +35,9 @@ def main(args):
     logging.info(f"Downloading {lan} set")
     with open(f"{r_path}/{lan}240.json", "r") as f:
         data = json.load(f)
-    i=0, j=0, k=0
+    i=0
+    j=0
+    k=0
     for obj in data:
         #video_name = obj["video_name"]
         #sign_list = obj["sign_list"]

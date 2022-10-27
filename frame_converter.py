@@ -1,3 +1,4 @@
+#30 September 2022
 #frames from videos; https://github.com/Ai-Genome-Saksham/OpenCV/blob/main/OpenCV/%239%20Extracting%20Images%20from%20Video.py
 #text from images;   https://github.com/bhadreshpsavani/ExploringOCR/blob/master/OCRusingTesseract.ipynb
 
@@ -21,129 +22,113 @@ import math
 import sys
 import pickle
 import gzip
-from keras.preprocessing import image
-#from keras.layers import merge, Input
-from PIL import Image
-from PIL import ImageChops
-from PIL import ImageEnhance
+#from keras.preprocessing import image
+#from PIL import Image
+#from PIL import ImageChops
+#from PIL import ImageEnhance
 import tensorflow as tf
 import torch
 import json
 from PIL import Image
-#from torchvision import transforms
-#from efficientnet_pytorch import EfficientNet
-
+import cv2
+import numpy as np
+import os
+from matplotlib import pyplot as plt
+import time
+import mediapipe as mp
+import tarfile
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+
 #changes the frame rate of all the videos to 25
 def main(args):
-
-    lan = "ase"  
+    lan = "xki"
+    mp_holistic = mp.solutions.holistic # Holistic model
+    mp_drawing = mp.solutions.drawing_utils # Drawing utilities
+    mp_pose = mp.solutions.pose
     root_path = Path(args.save_path)
-    videos_path = Path(args.save_path + f"/{lan}_videos")
-    verses_num = 0
-    
-    
-    if Path(f"{root_path}/{lan}_videospath.txt").exists():
-        print(f"{lan}_videospath.txt exists.")
-        files_grabbed = []
-        with open(f"{root_path}/{lan}_videospath.txt", 'r') as filehandle:
-            for line in filehandle:
-                # Remove linebreak which is the last character of the string
-                curr_place = line[:-1]
-                # Add item to the list
-                files_grabbed.append(curr_place)
-    else:
-        files_grabbed = sorted(videos_path.glob('*.mp4'), key=os.path.getmtime)
-        with open(f"{root_path}/{lan}_videospath.txt", 'w') as filehandle:
-            for listitem in files_grabbed:
-                filehandle.write(f'{listitem}\n')
-
-    #Emodel = EfficientNet.from_pretrained('efficientnet-b0')
+    types = ('*.gz','*.zip') # the tuple of file types
+    verses_zip_files = []   
+    for files in types:
+        verses_zip_files.extend(root_path.glob(files))        
+    print(len(verses_zip_files))    
     verses_list=[]
-    video_i = 0
-    folder_name = "000_100"
-    
-    step = 1/25    
-    for videopath in files_grabbed[video_i:video_i+101]:
-        videopath = Path(videopath)
-        #vid = cv2.VideoCapture(str(video_path))
-        refB = str(videopath).split('/')[-1].split('.')[0]
-        os.system(f"ffprobe -i {videopath} -print_format default -show_chapters -loglevel error > {videos_path}/{refB}.json 2>&1")
-        
-        with open(f"{videos_path}/{refB}.json", "r") as infile:
-            data = infile.read()
-        data = data.replace("\n", "|")
-        data = data.replace("|[/CHAPTER]|", "\n")
-        colnames=["CHAPTER","id","time_base","start","start_time","end","end_time","title"]
-        dataIO = io.StringIO(data)
-        df = pd.read_csv(dataIO, sep="|", names=colnames, header=None)
-        df.drop(['CHAPTER', 'id', 'time_base', 'start', 'end'], axis=1, inplace=True)
-        try:
-            df['LastDigit'] = [x.strip()[-1] for x in df['title']]
-        except AttributeError:
-            print(f"SKIPPED SKIPPED SKIPPED SKIPPED SKIPPED Video {video_i} - {refB} done.")
-            video_i += 1
-            continue
-        df = df[df['LastDigit'].str.isdigit()]
-        df.drop(['LastDigit'], axis=1, inplace=True)
-        df["start_time"] = df["start_time"].str.replace("start_time=", "")
-        df["end_time"] = df["end_time"].str.replace("end_time=", "")
-        df["title"] = df["title"].str.replace("TAG:title=", "")
-        #df['title'] = df['title'].str.replace('.', '_') 
-        #df['title'] = df['title'].str.replace(':', '_')
-        #df['title'] = df['title'].str.replace(' ', '_')        
-        verse_dict = {}
-        video = cv2.VideoCapture(str(videopath))
-        for index, row in df.iterrows():           
-            #print(row["Name"], row["Age"])
-            #opencv_method
-            """
-            verse_dict["video_name"] = refB
-            verse_dict["name"] = row["title"]
-            verse_dict["signer"] = "Signer8"            
-            verse_dict["duration"] = float(float(row["end_time"]) - float(row["start_time"]))
-            verse_dict["text"] = "Verse Text"
-            """
-            #video = cv2.VideoCapture(str(videopath))
-            currentframe = 1
-            #step = 1/25
-            #enet_feature_list=[]
-            for current_second in np.arange(math.ceil(float(row["start_time"])), math.floor(float(row["end_time"])), step):
-              t_msec = 1000*(current_second)
-              video.set(cv2.CAP_PROP_POS_MSEC, t_msec)
-              success, frame = video.read()
-              if success:
-                #image_save_start
-                verse_path = f'/content/{lan}_{folder_name}/{row["title"]}'
-                
-                # creates folder with verse name if it doesn't yet exists. 
-                try:
-                    # creates folder with verse name if it doesn't yet exists. 
-                    verse_path = Path(verse_path)  # TODO FY
-                    if not os.path.exists(verse_path):
-                        os.makedirs(verse_path)           
-                # if not created then raise error
-                except OSError:
-                    print('Error: Creating directory of data')     
-                                                      
-                name = 'images' + str("{:05d}".format(currentframe)) + '.png' #TODO SHESTER : NOT VERY SURE OF THE f"{verse}
-                #print('Creating...' + name)
-                image_path = f"{verse_path}/{name}"
-                # writing the extracted images
-                cv2.imwrite(image_path,cv2.resize(frame,(320, 240)))
-                currentframe += 1
-                #image_save_end
-            verses_num += 1
-    
-        print(f"Video {video_i} - {refB} done.")
-        video_i += 1
-        video.release()
-        cv2.destroyAllWindows() 
-    print(f"COMPLETED. Total of {verses_num} verses folders generated. ")
-    #vfile = gzip.GzipFile("/content/SP-10/dataset/GSL240.dataset", 'wb')
-    #vfile.write(pickle.dumps(verses_list,0))
-    #vfile.close()
+    verses_count = 0    
+    for verse_zip_file in verses_zip_files:
+        if str(verse_zip_file).endswith("tar.gz"):
+            #print("found!")
+            tar = tarfile.open(verse_zip_file, "r:gz")
+            tar.extractall()
+            tar.close()
+        elif verse_zip_file.endswith("tar.gz"):
+            tar = tarfile.open(verse_zip_file, "r:gz")
+            tar.extractall()
+            tar.close()
+        #!tar -xvzf $verse_zip_file -C /content/Dataset 
+        for root11, dirs11, files11 in os.walk(Path("/content/Dataset/content")):
+          dirs1 = dirs11
+          break   
+        for root0, dirs0, files0 in os.walk(Path(f"/content/Dataset/content/{dirs1[0]}")):
+          dirs = dirs0
+          break          
+        for d in dirs:          
+          num_images = len(os.listdir(f"/content/Dataset/content/{dirs1[0]}/{d}"))
+          mean_distance = 0
+          verse_dict = {}
+          verse_features = []
+          verse_dict["name"] = d
+          for i in range(1,num_images+1):
+            frame_name = 'images' + str("{:05d}".format(i)) + '.png'
+            frame = cv2.imread(f"/content/Dataset/content/{dirs1[0]}/{d}/{frame_name}")
+            with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
+              # Make detections
+                  frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # COLOR CONVERSION BGR 2 RGB
+                  frame.flags.writeable = False                  # Image is no longer writeable
+                  results = holistic.process(frame)              # Make prediction                  
+                  pose = np.array([[res.x, res.y, res.z, res.visibility] for res in results.pose_landmarks.landmark]).flatten() if results.pose_landmarks else np.zeros(33*4)
+                  face = np.array([[res.x, res.y, res.z] for res in results.face_landmarks.landmark]).flatten() if results.face_landmarks else np.zeros(468*3)
+                  lh = np.array([[res.x, res.y, res.z] for res in results.left_hand_landmarks.landmark]).flatten() if results.left_hand_landmarks else np.zeros(21*3)
+                  rh = np.array([[res.x, res.y, res.z] for res in results.right_hand_landmarks.landmark]).flatten() if results.right_hand_landmarks else np.zeros(21*3)
+                  
+
+                  # a variant of your normalise method here   
+                  left_shoulder = np.array([pose[44],pose[45],pose[46]])
+                  right_shoulder = np.array([pose[48],pose[49],pose[50]])
+                  shoulder_width = (((right_shoulder - left_shoulder)**2).sum())**0.5
+                  mean_distance = mean_distance + shoulder_width
+                  center_pose = np.array([(left_shoulder[0]+right_shoulder[0])/2,
+                                    (left_shoulder[1]+right_shoulder[1])/2,
+                                      0,0])
+                  center_pose = np.tile(center_pose,33)
+                  pose = pose - center_pose 
+                  center = np.array([(left_shoulder[0]+right_shoulder[0])/2,
+                                    (left_shoulder[1]+right_shoulder[1])/2,
+                                      0])
+                  center_face = np.tile(center,468)
+                  face = face - center_face
+
+                  center_hands = np.tile(center,21)
+                  lh = lh - center_hands
+                  rh = rh - center_hands
+                  
+
+
+                  image_feature = np.concatenate([pose, face, lh, rh])
+                  image_feature = torch.from_numpy(image_feature)
+                  image_feature = torch.flatten(image_feature)
+                  verse_features.append(image_feature)  
+          #mean_distance = mean_distance / num_images
+          #verse_features = verse_features * (1 / mean_distance)
+          verse_dict["sign"]  = verse_features
+          verses_list.append(verse_dict)
+          verses_count = verses_count + 1
+          print(f"Verse {verses_count} done.")
+        shutil.rmtree(f"/content/Dataset/content")  
+
+    file = gzip.GzipFile(f"/content/drive/MyDrive/Sign_Language_Videos/dataset/{lan}240.dataset", 'wb')
+    file.write(pickle.dumps(verses_list,0))
+    file.close()
+
 if __name__ == "__main__":
     parse = argparse.ArgumentParser()
     parse.add_argument(

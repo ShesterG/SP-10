@@ -163,7 +163,7 @@ def main(args):
               
           video.release()
           cv2.destroyAllWindows() 
-    file = gzip.GzipFile("/content/drive/MyDrive/Sign_Language_Videos/dataset/{lan}{folder_name}.dataset", 'wb')
+    file = gzip.GzipFile(f"/content/drive/MyDrive/Sign_Language_Videos/dataset/{lan}{folder_name}.dataset", 'wb')
     file.write(pickle.dumps(verses_list,0))
     file.close()
 if __name__ == "__main__":
